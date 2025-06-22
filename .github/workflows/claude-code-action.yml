@@ -1,0 +1,157 @@
+name: Claude Code Action - AI Article Generation
+
+on:
+  workflow_dispatch:
+    inputs:
+      tool_url:
+        description: 'AIツールのURL'
+        required: true
+        type: string
+        default: 'https://elevenlabs.io'
+      
+      primary_keyword:
+        description: 'SEO対策のメインキーワード'
+        required: true
+        type: string
+        default: 'AI tool review 2025'
+      
+      category:
+        description: 'ツールのカテゴリ'
+        required: false
+        type: string
+        default: '音声AI'
+      
+      target_length:
+        description: '目標文字数'
+        required: false
+        type: number
+        default: 1600
+      
+      auto_publish:
+        description: 'WordPressに自動投稿する'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  generate-article:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install anthropic requests beautifulsoup4 markdown python-wordpress-xmlrpc
+    
+    - name: Generate AI article
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        python3 scripts/generate_article.py \
+          --url "${{ github.event.inputs.tool_url }}" \
+          --keyword "${{ github.event.inputs.primary_keyword }}" \
+          --category "${{ github.event.inputs.category }}" \
+          --target-length ${{ github.event.inputs.target_length }}
+    
+    - name: Quality check
+      id: quality-check
+      run: |
+        # 生成された記事の品質をチェック
+        LATEST_ARTICLE=$(ls -t content/*.md | head -1)
+        
+        if [ -f "$LATEST_ARTICLE" ]; then
+          WORD_COUNT=$(wc -w < "$LATEST_ARTICLE")
+          echo "Generated article: $LATEST_ARTICLE"
+          echo "Word count: $WORD_COUNT"
+          echo "article_path=$LATEST_ARTICLE" >> $GITHUB_OUTPUT
+          echo "word_count=$WORD_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ $WORD_COUNT -lt 800 ]; then
+            echo "⚠️ Warning: Article is shorter than expected ($WORD_COUNT words)"
+            echo "quality_status=warning" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Article quality check passed"
+            echo "quality_status=passed" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "❌ No article was generated"
+          echo "quality_status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+    
+    - name: Create Pull Request
+      if: steps.quality-check.outputs.quality_status != 'failed'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: |
+          feat: Claude Code Actionで記事生成
+          
+          - URL: ${{ github.event.inputs.tool_url }}
+          - キーワード: ${{ github.event.inputs.primary_keyword }}
+          - カテゴリ: ${{ github.event.inputs.category }}
+          - 文字数: ${{ steps.quality-check.outputs.word_count }}語
+        
+        title: "🤖 AI記事生成: ${{ github.event.inputs.category }} - ${{ github.event.inputs.primary_keyword }}"
+        
+        body: |
+          ## 📝 AI記事生成レポート
+          
+          **Claude Code Action**により自動生成された記事です。
+          
+          ### 📊 生成パラメータ
+          - **対象URL**: ${{ github.event.inputs.tool_url }}
+          - **SEOキーワード**: ${{ github.event.inputs.primary_keyword }}
+          - **カテゴリ**: ${{ github.event.inputs.category }}
+          - **目標文字数**: ${{ github.event.inputs.target_length }}語
+          
+          ### 📈 品質メトリクス
+          - **実際の文字数**: ${{ steps.quality-check.outputs.word_count }}語
+          - **品質ステータス**: ${{ steps.quality-check.outputs.quality_status }}
+          
+          ### 📋 生成されたファイル
+          - `${{ steps.quality-check.outputs.article_path }}`
+          
+          ### ✅ レビュー後の作業
+          1. 記事内容の確認・編集
+          2. アフィリエイトリンクの設定
+          3. 画像の追加（必要に応じて）
+          4. WordPressへの投稿
+          
+          ---
+          *このPRは Claude Code Action により自動生成されました*
+        
+        branch: claude/article-${{ github.run_number }}
+        delete-branch: true
+    
+    - name: Auto-publish to WordPress
+      if: >
+        github.event.inputs.auto_publish == 'true' && 
+        steps.quality-check.outputs.quality_status == 'passed'
+      env:
+        WORDPRESS_URL: ${{ secrets.WORDPRESS_URL }}
+        WORDPRESS_USERNAME: ${{ secrets.WORDPRESS_USERNAME }}
+        WORDPRESS_PASSWORD: ${{ secrets.WORDPRESS_PASSWORD }}
+      run: |
+        python3 scripts/deploy_to_wordpress.py \
+          --article-path "${{ steps.quality-check.outputs.article_path }}" \
+          --status draft
+    
+    - name: Notify completion
+      if: always()
+      run: |
+        echo "🎉 Claude Code Action workflow completed"
+        echo "Status: ${{ steps.quality-check.outputs.quality_status }}"
+        echo "Generated article: ${{ steps.quality-check.outputs.article_path }}" 
