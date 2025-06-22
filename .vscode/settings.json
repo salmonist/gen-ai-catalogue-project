@@ -1,0 +1,51 @@
+{
+  "python.defaultInterpreterPath": "./backend/venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length", "88"],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/venv": true,
+    "**/node_modules": true,
+    "**/.DS_Store": true,
+    "**/tmp": true
+  },
+  "search.exclude": {
+    "**/venv": true,
+    "**/node_modules": true,
+    "**/tmp": true,
+    "**/.git": true
+  },
+  "git.ignoreLimitWarning": true,
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}/backend"
+  },
+  "claude.enabled": true,
+  "claude.codeActions.enabled": true,
+  "claude.suggestions.enabled": true,
+  "claude.autoCommit": true,
+  "claude.createPR": true,
+  "files.associations": {
+    "*.yaml": "yaml",
+    "*.yml": "yaml",
+    ".cursorrules": "plaintext",
+    ".claude_project": "json"
+  },
+  "yaml.schemas": {
+    "./prompts/*.yaml": "prompts"
+  },
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact",
+    "typescript": "typescriptreact"
+  }
+} 

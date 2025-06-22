@@ -48,10 +48,16 @@ tmp/
 *.temp
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
+
+# VSCode settings (keep project-specific settings)
+!.vscode/
+.vscode/settings.json
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
 
 # OS
 .DS_Store
