@@ -1,0 +1,102 @@
+{
+  "name": "Gen AI Catalogue Project",
+  "description": "生成AIツール・SaaS自動記事生成システム（Claude Code Action連携）",
+  "version": "1.0.0",
+  "language": "ja",
+  "framework": {
+    "backend": "FastAPI (Python 3.x)",
+    "frontend": "React + Vite + JavaScript",
+    "database": "SQLAlchemy + PostgreSQL",
+    "ai_integration": "Anthropic Claude API",
+    "cms": "WordPress REST API"
+  },
+  "ports": {
+    "backend": 5050,
+    "frontend": 5173
+  },
+  "development": {
+    "methodology": "AI-First Development",
+    "python_command": "python3",
+    "no_dummy_data": true,
+    "claude_integration": true,
+    "article_generation": true
+  },
+  "claude_settings": {
+    "code_actions": {
+      "enabled": true,
+      "auto_suggest": true,
+      "context_aware": true,
+      "ai_integration_support": true,
+      "japanese_comments": true,
+      "always_create_pr": true,
+      "pr_template": "claude_pr_template.md",
+      "auto_test_generation": true,
+      "article_generation_support": true
+    },
+    "suggestions": {
+      "api_optimization": true,
+      "article_quality_improvement": true,
+      "seo_optimization": true,
+      "wordpress_integration": true,
+      "error_handling": true,
+      "performance_optimization": true
+    },
+    "file_patterns": {
+      "backend_files": "backend/**/*.py",
+      "frontend_files": "frontend/**/*.{js,jsx,ts,tsx}",
+      "script_files": "scripts/**/*.py",
+      "config_files": "**/*.{json,yaml,yml,toml}",
+      "article_files": "content/**/*.md",
+      "prompt_files": "prompts/**/*.yaml"
+    }
+  },
+  "project_structure": {
+    "backend": "backend/",
+    "frontend": "frontend/",
+    "scripts": "scripts/",
+    "prompts": "prompts/",
+    "content": "content/",
+    "gen_ai_catalogue": "Gen_AI_Catalogue/"
+  },
+  "coding_standards": {
+    "python": {
+      "style": "PEP 8",
+      "formatter": "black",
+      "linter": "flake8",
+      "type_hints": true,
+      "async_support": true
+    },
+    "javascript": {
+      "style": "ESLint",
+      "formatter": "Prettier",
+      "framework": "React"
+    }
+  },
+  "ai_integration": {
+    "primary_model": "Claude",
+    "article_generation": {
+      "enabled": true,
+      "workflow": ["fetch", "analyze", "outline", "write", "optimize"],
+      "output_format": "markdown",
+      "seo_optimization": true,
+      "wordpress_ready": true
+    },
+    "content_types": [
+      "tool_reviews",
+      "comparison_articles",
+      "tutorial_guides",
+      "news_updates"
+    ]
+  },
+  "external_integrations": {
+    "wordpress": {
+      "enabled": true,
+      "rest_api": true,
+      "auto_publish": false
+    },
+    "web_scraping": {
+      "enabled": true,
+      "tools": ["BeautifulSoup", "requests"]
+    }
+  }
+} 

@@ -1,0 +1,53 @@
+{
+  "title": "URLからブログ記事を生成",
+  "description": "指定されたURLから生成AIツールのレビュー記事を自動生成します",
+  "params": [
+    {
+      "name": "url",
+      "type": "string",
+      "description": "記事生成の対象となるツールのURL",
+      "required": true
+    }
+  ],
+  "steps": [
+    {
+      "action": "bash",
+      "cmd": "python3 scripts/fetch_content.py {{url}} > tmp/research.json",
+      "description": "URLからコンテンツを取得してJSONファイルに保存"
+    },
+    {
+      "action": "claude",
+      "model": "claude-3-haiku-20240307",
+      "prompt": "以下のJSONデータを基に、生成AIツールのレビュー記事のアウトラインを作成してください。H2とH3の見出し構造で、各見出しは140文字以下にしてください。\n\n{{file:tmp/research.json}}",
+      "out": "tmp/outline.md",
+      "description": "取得したデータからアウトラインを生成"
+    },
+    {
+      "action": "claude",
+      "model": "claude-3-sonnet-20240229",
+      "prompt": "以下のアウトラインに沿って、1600文字程度の詳細なレビュー記事をMarkdown形式で執筆してください。SEO最適化を意識し、実際の使用例や比較表も含めてください。\n\nアウトライン:\n{{file:tmp/outline.md}}\n\n元データ:\n{{file:tmp/research.json}}",
+      "out": "content/{{date}}-{{slug}}.md",
+      "description": "アウトラインに基づいて完全な記事を生成"
+    },
+    {
+      "action": "claude",
+      "model": "claude-3-haiku-20240307",
+      "prompt": "以下の記事に対して、SEO最適化のためのメタデータ（meta description 160文字以内、FAQ 3つ、JSON-LD構造化データ）を追加してください。\n\n{{file:content/{{date}}-{{slug}}.md}}",
+      "out": "tmp/seo_metadata.md",
+      "description": "SEO最適化のメタデータを生成"
+    },
+    {
+      "action": "bash",
+      "cmd": "cat content/{{date}}-{{slug}}.md tmp/seo_metadata.md > content/{{date}}-{{slug}}_final.md",
+      "description": "記事とSEOメタデータを結合"
+    },
+    {
+      "action": "bash",
+      "cmd": "git add content/{{date}}-{{slug}}_final.md && git commit -m 'feat: auto-generated article from {{url}}'",
+      "description": "生成された記事をGitにコミット"
+    }
+  ],
+  "cleanup": [
+    "rm -f tmp/research.json tmp/outline.md tmp/seo_metadata.md"
+  ]
+} 

@@ -1,0 +1,47 @@
+{
+  "name": "AI Tool Article Generator",
+  "description": "AIツールのレビュー記事を自動生成するレシピ",
+  "parameters": [
+    {
+      "name": "tool_url",
+      "description": "レビューするAIツールのURL（例: https://elevenlabs.io）",
+      "type": "string",
+      "required": true,
+      "placeholder": "https://example-ai-tool.com"
+    },
+    {
+      "name": "primary_keyword",
+      "description": "SEO対策のメインキーワード（例: ElevenLabs review 2025）",
+      "type": "string",
+      "required": true,
+      "placeholder": "AI tool review 2025"
+    },
+    {
+      "name": "category",
+      "description": "ツールのカテゴリ（例: 音声AI、画像生成、テキスト生成）",
+      "type": "string",
+      "required": false,
+      "placeholder": "音声AI"
+    },
+    {
+      "name": "target_length",
+      "description": "目標文字数（デフォルト: 1600文字）",
+      "type": "number",
+      "required": false,
+      "default": 1600
+    }
+  ],
+  "steps": [
+    {
+      "type": "command",
+      "description": "記事生成スクリプトを実行",
+      "command": "cd gen_ai_catalogue_project && python3 scripts/generate_article.py --url {tool_url} --keyword '{primary_keyword}' --category '{category}' --target-length {target_length}"
+    },
+    {
+      "type": "message",
+      "description": "記事生成が完了しました。content/ディレクトリで生成された記事を確認してください。"
+    }
+  ],
+  "tags": ["ai", "article", "generation", "seo", "wordpress"],
+  "version": "1.0.0"
+} 

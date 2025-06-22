@@ -1,0 +1,79 @@
+name: "AI Tool Review Template"
+description: "生成AIツール・SaaSのレビュー記事生成用テンプレート"
+version: "1.0"
+
+prompts:
+  research:
+    system: |
+      あなたは生成AIツール・SaaSの専門アナリストです。
+      提供された情報を基に、ツールの特徴、価格、使用例を整理してください。
+    
+    user: |
+      以下の情報から、{{tool_name}}について以下の項目を整理してください：
+      
+      1. ツールの概要と主な機能
+      2. 価格プラン（詳細な料金表）
+      3. 対象ユーザー
+      4. 競合ツールとの比較ポイント
+      5. 実際の使用例
+      6. メリット・デメリット
+      
+      情報: {{source_data}}
+
+  outline:
+    system: |
+      あなたは経験豊富なテクニカルライターです。
+      SEO最適化されたブログ記事のアウトラインを作成してください。
+    
+    user: |
+      {{tool_name}}のレビュー記事のアウトラインを作成してください。
+      
+      要件：
+      - H2、H3の見出し構造
+      - 各見出しは140文字以内
+      - SEOキーワード「{{primary_keyword}}」を含める
+      - 読者の購買決定に役立つ構成
+      
+      リサーチデータ: {{research_data}}
+
+  article:
+    system: |
+      あなたは生成AIツール専門のテクニカルライターです。
+      読者にとって有用で、SEO最適化されたレビュー記事を執筆してください。
+    
+    user: |
+      以下のアウトラインに沿って、{{tool_name}}の詳細レビュー記事を執筆してください。
+      
+      要件：
+      - 1600文字程度
+      - Markdown形式
+      - 実際の使用例を含める
+      - 価格比較表を含める
+      - 読者の行動を促すCTAを含める
+      - アフィリエイトリンクの設置箇所を明記
+      
+      アウトライン: {{outline}}
+      リサーチデータ: {{research_data}}
+
+  seo_optimization:
+    system: |
+      あなたはSEO専門家です。
+      ブログ記事のSEO最適化要素を生成してください。
+    
+    user: |
+      以下の記事に対してSEO最適化要素を生成してください：
+      
+      1. Meta Description（160文字以内）
+      2. FAQ（3つ、よくある質問と回答）
+      3. JSON-LD構造化データ（Product/Review schema）
+      
+      記事内容: {{article_content}}
+      主要キーワード: {{primary_keyword}}
+
+variables:
+  tool_name: "対象ツール名"
+  primary_keyword: "主要SEOキーワード"
+  source_data: "収集した情報"
+  research_data: "整理されたリサーチデータ"
+  outline: "記事アウトライン"
+  article_content: "記事本文" 

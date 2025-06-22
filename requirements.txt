@@ -1,0 +1,4 @@
+requests==2.31.0
+beautifulsoup4==4.12.2
+python-wordpress-xmlrpc==2.3
+markdown==3.5.1 

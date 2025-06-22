@@ -1,0 +1,321 @@
+# Gen AI Catalogue Project - AI記事生成システム開発ルール
+
+## プロジェクト概要
+生成AIツール・SaaS自動記事生成システム。Claude Code Actionを活用して高品質な記事を自動生成し、WordPressに投稿する。
+
+## AI-First Development 原則
+- **Claude統合**: Claude APIを活用した記事生成ワークフロー
+- **品質重視**: 人間レベルの記事品質を目指す
+- **SEO最適化**: 検索エンジン最適化を常に意識
+- **自動化**: 手動作業を最小限に抑制
+
+## 開発言語・環境
+- バックエンド: FastAPI + Python 3.x
+- フロントエンド: React + Vite + JavaScript
+- データベース: SQLAlchemy + PostgreSQL
+- AI統合: Anthropic Claude API
+- CMS連携: WordPress REST API
+- ポート: バックエンド 5050, フロントエンド 5173
+- Pythonコマンド: python3を使用
+
+## 記事生成ワークフロー
+
+### 1. コンテンツ取得 (fetch_content.py)
+- BeautifulSoupによるWebスクレイピング
+- ツール情報、価格、機能の自動抽出
+- メタデータの収集
+
+### 2. 分析フェーズ (Claude Haiku)
+- 取得データの構造化
+- 競合比較ポイントの特定
+- キーワード分析
+
+### 3. アウトライン作成 (Claude Sonnet)
+- SEO最適化された見出し構造
+- アフィリエイトリンク配置計画
+- コンテンツ流れの設計
+
+### 4. 記事執筆 (Claude Opus)
+- 1600文字以上の詳細レビュー
+- 価格表、使用例、CTA含む
+- 自然な文章構成
+
+### 5. SEO最適化 (Claude Haiku)
+- Meta Description生成
+- FAQ（3つ）作成
+- JSON-LD構造化データ
+
+## バックエンド開発ルール
+
+### API設計原則
+- RESTful API設計
+- 非同期処理（async/await）の活用
+- 適切なHTTPステータスコード
+- エラーハンドリングの徹底
+
+### エンドポイント命名規則
+```python
+# 記事生成関連
+POST /api/articles/generate          # 記事生成開始
+GET  /api/articles/{id}/status       # 生成状況確認
+GET  /api/articles/{id}              # 記事取得
+PUT  /api/articles/{id}              # 記事更新
+DELETE /api/articles/{id}            # 記事削除
+
+# WordPress連携
+POST /api/wordpress/publish          # WordPress投稿
+GET  /api/wordpress/status           # 投稿状況確認
+
+# コンテンツ取得
+POST /api/content/fetch              # Webコンテンツ取得
+GET  /api/content/analyze            # コンテンツ分析
+```
+
+### データベース設計
+```python
+# 記事テーブル
+class Article(Base):
+    id: int
+    title: str
+    content: str
+    status: str  # draft, ready, published
+    seo_data: dict
+    created_at: datetime
+    updated_at: datetime
+
+# ツール情報テーブル
+class AITool(Base):
+    id: int
+    name: str
+    url: str
+    category: str
+    pricing: dict
+    features: list
+    scraped_at: datetime
+```
+
+## フロントエンド開発ルール
+
+### コンポーネント構造
+```
+src/
+├── components/
+│   ├── ArticleGenerator/     # 記事生成UI
+│   ├── ArticleList/         # 記事一覧
+│   ├── WordPressPublisher/  # WordPress投稿
+│   └── common/              # 共通コンポーネント
+├── hooks/
+│   ├── useArticleGeneration.js
+│   ├── useWordPressAPI.js
+│   └── useContentFetching.js
+├── services/
+│   ├── articleApi.js
+│   ├── wordpressApi.js
+│   └── contentApi.js
+└── utils/
+    ├── seoUtils.js
+    ├── markdownUtils.js
+    └── validationUtils.js
+```
+
+### 状態管理
+- React hooksベースの状態管理
+- 記事生成状況のリアルタイム更新
+- エラー状態の適切な処理
+
+## AI統合開発ルール
+
+### Claude API使用ガイドライン
+```python
+# 推奨パターン
+async def generate_article_section(prompt: str, model: str = "claude-3-haiku"):
+    try:
+        response = await claude_client.messages.create(
+            model=model,
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.content[0].text
+    except Exception as e:
+        logger.error(f"Claude API error: {e}")
+        raise ArticleGenerationError(f"AI生成に失敗しました: {e}")
+```
+
+### プロンプト管理
+- YAMLファイルでプロンプトテンプレート管理
+- バージョン管理による品質向上
+- A/Bテスト対応
+
+### 記事品質保証
+- 文字数チェック（最低1600文字）
+- SEOスコア計算
+- 読みやすさ指標
+- アフィリエイトリンク配置確認
+
+## WordPress連携ルール
+
+### 投稿前チェックリスト
+- [ ] Meta Descriptionの設定
+- [ ] カテゴリ・タグの設定
+- [ ] アイキャッチ画像の設定
+- [ ] アフィリエイトリンクの確認
+- [ ] 構造化データの埋め込み
+
+### WordPress REST API使用
+```python
+async def publish_to_wordpress(article: Article):
+    wp_data = {
+        "title": article.title,
+        "content": article.content,
+        "status": "draft",  # 初回はdraftで投稿
+        "meta": article.seo_data,
+        "categories": article.categories,
+        "tags": article.tags
+    }
+    
+    response = await wp_client.post("/wp-json/wp/v2/posts", json=wp_data)
+    return response.json()
+```
+
+## セキュリティルール
+
+### API認証
+- WordPress Application Passwordの使用
+- Claude APIキーの環境変数管理
+- レート制限の実装
+
+### データ保護
+- 個人情報の非保存
+- ログの適切な管理
+- セキュアな通信（HTTPS）
+
+## パフォーマンス最適化
+
+### 記事生成最適化
+- 並列処理による生成時間短縮
+- キャッシュ機能の実装
+- 失敗時のリトライ機能
+
+### フロントエンド最適化
+- 遅延読み込み（Lazy Loading）
+- 記事プレビューの軽量化
+- 状態更新の最適化
+
+## エラーハンドリング
+
+### 記事生成エラー
+```python
+class ArticleGenerationError(Exception):
+    """記事生成関連のエラー"""
+    pass
+
+class ContentFetchError(Exception):
+    """コンテンツ取得関連のエラー"""
+    pass
+
+class WordPressPublishError(Exception):
+    """WordPress投稿関連のエラー"""
+    pass
+```
+
+### ユーザーフレンドリーなエラーメッセージ
+- 日本語でのエラー表示
+- 解決方法の提示
+- 再試行オプションの提供
+
+## テスト戦略
+
+### 単体テスト
+- Claude API連携のモックテスト
+- 記事生成ロジックのテスト
+- SEO最適化機能のテスト
+
+### 統合テスト
+- 記事生成ワークフロー全体のテスト
+- WordPress連携のテスト
+- エラーハンドリングのテスト
+
+## 禁止事項
+
+### 開発時
+- ダミーデータの追加（実際のツール情報のみ使用）
+- 本番WordPress環境での直接テスト
+- APIキーのハードコーディング
+- 著作権侵害となるコンテンツの生成
+
+### 記事生成時
+- 事実と異なる情報の記載
+- 競合他社の誹謗中傷
+- 過度なアフィリエイトリンクの設置
+- SEOスパム的な手法
+
+## 推奨ツール・ライブラリ
+
+### バックエンド
+- FastAPI: APIフレームワーク
+- SQLAlchemy: ORM
+- Alembic: データベースマイグレーション
+- Pydantic: データバリデーション
+- BeautifulSoup: Webスクレイピング
+- Anthropic: Claude API クライアント
+
+### フロントエンド
+- React: UIフレームワーク
+- Vite: ビルドツール
+- Tailwind CSS: CSSフレームワーク
+- React Query: データフェッチング
+
+### 開発支援
+- Black: Pythonコードフォーマッター
+- ESLint: JavaScript リンター
+- Prettier: コードフォーマッター
+
+## Claude Code Action 専用設定
+
+### 記事生成コマンド
+Claude Code Actionから直接実行可能なコマンド：
+
+1. **記事生成開始**
+   ```bash
+   python3 scripts/generate_article.py --url <TOOL_URL> --keyword <SEO_KEYWORD>
+   ```
+
+2. **WordPress投稿**
+   ```bash
+   python3 scripts/deploy_to_wordpress.py --article-id <ARTICLE_ID>
+   ```
+
+3. **記事品質チェック**
+   ```bash
+   python3 scripts/quality_check.py --article-id <ARTICLE_ID>
+   ```
+
+### 自動PR作成
+- ブランチ名: `claude/article-<timestamp>`
+- PR本文に記事生成結果を含める
+- 品質チェック結果の添付
+
+### コード生成時の注意
+- 既存のプロンプトテンプレートとの整合性
+- SEO最適化ロジックの維持
+- WordPress API仕様への準拠
+
+## 継続的改善
+
+### 記事品質向上
+- 生成記事の定期的なレビュー
+- プロンプトテンプレートの改善
+- SEOスコアの監視
+
+### システム最適化
+- 生成速度の改善
+- エラー率の削減
+- ユーザビリティの向上
+
+### 新機能開発
+- 多言語対応
+- 新しいCMS連携
+- 高度なSEO分析機能
+
+## 連絡先・サポート
+質問や問題がある場合は、GitHubのIssueを作成してください。 
